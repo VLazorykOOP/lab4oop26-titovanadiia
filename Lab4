@@ -1,0 +1,1111 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <cstring>
+#include <cmath>
+#include <cstdlib>
+using namespace std;
+
+//===========================
+//==========TASK 1.6=========
+//  Клас Vector3F
+//===========================
+class Vector3F {
+private:
+    float x, y, z;
+    int State;
+    static int count;
+
+public:
+    // Конструктор без параметрів
+    Vector3F() : x(0), y(0), z(0), State(0) {
+        count++;
+    }
+
+    // Конструктор з одним параметром float
+    Vector3F(float val) : x(val), y(val), z(val), State(0) {
+        count++;
+    }
+
+    // Конструктор з вказівником
+    Vector3F(float* arr) : State(0) {
+        if (arr == nullptr) {
+            x = y = z = 0;
+            State = -1;
+            cout << "Vector3F: error - nullptr" << endl;
+        }
+        else {
+            x = arr[0]; y = arr[1]; z = arr[2];
+        }
+        count++;
+    }
+
+    // Конструктор копіювання
+    Vector3F(const Vector3F& other) : x(other.x), y(other.y), z(other.z), State(other.State) {
+        count++;
+    }
+
+    // Деструктор
+    ~Vector3F() {
+        cout << "Vector3F destroyed: (" << x << "," << y << "," << z << ") State=" << State << endl;
+        count--;
+    }
+
+    static int getCount() { return count; }
+    int getState() const { return State; }
+    float getX() const { return x; }
+    float getY() const { return y; }
+    float getZ() const { return z; }
+
+    // Оператор присвоєння
+    Vector3F& operator=(const Vector3F& b) {
+        if (this != &b) { x = b.x; y = b.y; z = b.z; State = b.State; }
+        return *this;
+    }
+
+    // Унарний префіксний ++
+    Vector3F& operator++() {
+        x++; y++; z++;
+        return *this;
+    }
+
+    // Унарний постфіксний ++
+    Vector3F operator++(int) {
+        Vector3F temp(*this);
+        x++; y++; z++;
+        return temp;
+    }
+
+    // Унарний префіксний --
+    Vector3F& operator--() {
+        x--; y--; z--;
+        return *this;
+    }
+
+    // Унарний постфіксний --
+    Vector3F operator--(int) {
+        Vector3F temp(*this);
+        x--; y--; z--;
+        return temp;
+    }
+
+    // Унарний ! - true якщо x,y,z не дорівнюють нулю
+    bool operator!() const {
+        return (x != 0 && y != 0 && z != 0);
+    }
+
+    // Унарний ~ - перпендикулярний вектор
+    Vector3F operator~() const {
+        Vector3F temp;
+        temp.x = -y;
+        temp.y = x;
+        temp.z = 0;
+        return temp;
+    }
+
+    // Унарний мінус
+    Vector3F operator-() const {
+        Vector3F temp;
+        temp.x = -x; temp.y = -y; temp.z = -z;
+        return temp;
+    }
+
+    // +=
+    Vector3F& operator+=(const Vector3F& b) {
+        x += b.x; y += b.y; z += b.z;
+        return *this;
+    }
+
+    // -=
+    Vector3F& operator-=(const Vector3F& b) {
+        x -= b.x; y -= b.y; z -= b.z;
+        return *this;
+    }
+
+    // *= число
+    Vector3F& operator*=(float b) {
+        x *= b; y *= b; z *= b;
+        return *this;
+    }
+
+    // /= число
+    Vector3F& operator/=(float b) {
+        if (b == 0) { State = -2; cout << "Error: division by zero" << endl; return *this; }
+        x /= b; y /= b; z /= b;
+        return *this;
+    }
+
+    // &= векторний добуток
+    Vector3F& operator&=(const Vector3F& b) {
+        float nx = y * b.z - z * b.y;
+        float ny = z * b.x - x * b.z;
+        float nz = x * b.y - y * b.x;
+        x = nx; y = ny; z = nz;
+        return *this;
+    }
+
+    // %= остача від ділення цілої частини на int
+    Vector3F& operator%=(int b) {
+        if (b == 0) { State = -2; cout << "Error: division by zero" << endl; return *this; }
+        x = (float)((int)x % b);
+        y = (float)((int)y % b);
+        z = (float)((int)z % b);
+        return *this;
+    }
+
+    // + додавання векторів
+    Vector3F operator+(const Vector3F& b) const {
+        Vector3F temp;
+        temp.x = x + b.x; temp.y = y + b.y; temp.z = z + b.z;
+        return temp;
+    }
+
+    // - віднімання векторів
+    Vector3F operator-(const Vector3F& b) const {
+        Vector3F temp;
+        temp.x = x - b.x; temp.y = y - b.y; temp.z = z - b.z;
+        return temp;
+    }
+
+    // * множення на число
+    Vector3F operator*(float b) const {
+        Vector3F temp;
+        temp.x = x * b; temp.y = y * b; temp.z = z * b;
+        return temp;
+    }
+
+    // / ділення на число
+    Vector3F operator/(float b) const {
+        Vector3F temp;
+        if (b == 0) { temp.State = -2; cout << "Error: division by zero" << endl; return temp; }
+        temp.x = x / b; temp.y = y / b; temp.z = z / b;
+        return temp;
+    }
+
+    // % остача
+    Vector3F operator%(int b) const {
+        Vector3F temp;
+        if (b == 0) { temp.State = -2; cout << "Error: division by zero" << endl; return temp; }
+        temp.x = (float)((int)x % b);
+        temp.y = (float)((int)y % b);
+        temp.z = (float)((int)z % b);
+        return temp;
+    }
+
+    // == рівність
+    bool operator==(const Vector3F& b) const {
+        return x == b.x && y == b.y && z == b.z;
+    }
+
+    // != нерівність
+    bool operator!=(const Vector3F& b) const {
+        return !(*this == b);
+    }
+
+    // > більше (порівняння довжин)
+    bool operator>(const Vector3F& b) const {
+        return (x * x + y * y + z * z) > (b.x * b.x + b.y * b.y + b.z * b.z);
+    }
+
+    // >= більше або рівне
+    bool operator>=(const Vector3F& b) const {
+        return (x * x + y * y + z * z) >= (b.x * b.x + b.y * b.y + b.z * b.z);
+    }
+
+    // < менше
+    bool operator<(const Vector3F& b) const {
+        return (x * x + y * y + z * z) < (b.x * b.x + b.y * b.y + b.z * b.z);
+    }
+
+    // <= менше або рівне
+    bool operator<=(const Vector3F& b) const {
+        return (x * x + y * y + z * z) <= (b.x * b.x + b.y * b.y + b.z * b.z);
+    }
+
+    // [] індексація: 0->x, 1->y, 2->z
+    float& operator[](int i) {
+        if (i == 0) return x;
+        if (i == 1) return y;
+        if (i == 2) { return z; }
+        cout << "Error: invalid index, returning z" << endl;
+        State = -3;
+        return z;
+    }
+
+    // () виклик функції - виводить довжину вектора
+    float operator()() const {
+        return sqrt(x * x + y * y + z * z);
+    }
+
+    // new і delete
+    void* operator new(size_t size) {
+        void* ptr = malloc(size);
+        if (!ptr) { cout << "Error: memory allocation failed" << endl; }
+        return ptr;
+    }
+
+    void operator delete(void* ptr) {
+        free(ptr);
+    }
+
+    // >> введення (дружня)
+    friend istream& operator>>(istream& in, Vector3F& v) {
+        in >> v.x >> v.y >> v.z;
+        return in;
+    }
+
+    // << виведення (дружня)
+    friend ostream& operator<<(ostream& out, const Vector3F& v) {
+        out << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+        return out;
+    }
+};
+
+int Vector3F::count = 0;
+
+//===========================
+//==========TASK 2.5=========
+//  Email та ПІБ
+//===========================
+class EmailPIB {
+private:
+    char** emails;
+    char** pibs;
+    int size;
+    int maxSize;
+    int CodeError;
+
+public:
+    EmailPIB() : size(0), maxSize(10), CodeError(0) {
+        emails = new char* [maxSize];
+        pibs = new char* [maxSize];
+    }
+
+    EmailPIB(int max) : size(0), maxSize(max), CodeError(0) {
+        emails = new char* [maxSize];
+        pibs = new char* [maxSize];
+    }
+
+    ~EmailPIB() {
+        for (int i = 0; i < size; i++) {
+            delete[] emails[i];
+            delete[] pibs[i];
+        }
+        delete[] emails;
+        delete[] pibs;
+    }
+
+    // Додати запис
+    void add(const char* email, const char* pib) {
+        if (size >= maxSize) {
+            cout << "Error: storage full" << endl;
+            CodeError = -1;
+            return;
+        }
+        emails[size] = new char[strlen(email) + 1];
+        pibs[size] = new char[strlen(pib) + 1];
+        strcpy(emails[size], email);
+        strcpy(pibs[size], pib);
+        size++;
+    }
+
+    // Вивести всю таблицю
+    void print() const {
+        cout << "\n--- Email-PIB Table ---" << endl;
+        for (int i = 0; i < size; i++) {
+            cout << emails[i] << " -> " << pibs[i] << endl;
+        }
+    }
+
+    // [] пошук ПІБ за email
+    char* operator[](const char* email) {
+        for (int i = 0; i < size; i++) {
+            if (strcmp(emails[i], email) == 0) return pibs[i];
+        }
+        cout << "Error: email not found" << endl;
+        CodeError = -2;
+        return nullptr;
+    }
+
+    // () пошук email за ПІБ
+    char* operator()(const char* pib) {
+        for (int i = 0; i < size; i++) {
+            if (strcmp(pibs[i], pib) == 0) return emails[i];
+        }
+        cout << "Error: PIB not found" << endl;
+        CodeError = -3;
+        return nullptr;
+    }
+
+    // >> введення (дружня)
+    friend istream& operator>>(istream& in, EmailPIB& db) {
+        char email[100], pib[200];
+        cout << "Enter email: "; in >> email;
+        cout << "Enter PIB: ";
+        in.ignore();
+        in.getline(pib, 200);
+        db.add(email, pib);
+        return in;
+    }
+
+    // << виведення (дружня)
+    friend ostream& operator<<(ostream& out, const EmailPIB& db) {
+        for (int i = 0; i < db.size; i++) {
+            out << db.emails[i] << " -> " << db.pibs[i] << endl;
+        }
+        return out;
+    }
+};
+
+//===========================
+//==========TASK 3.6=========
+//  Клас VectorShort (для MatrixShort)
+//===========================
+class VectorShort {
+private:
+    short* data;
+    int size;
+    int codeError;
+    static int count;
+
+public:
+    VectorShort() : size(1), codeError(0) {
+        data = new short[1];
+        data[0] = 0;
+        count++;
+    }
+
+    VectorShort(int sz) : size(sz), codeError(0) {
+        data = new short[sz];
+        for (int i = 0; i < sz; i++) data[i] = 0;
+        count++;
+    }
+
+    VectorShort(int sz, short val) : size(sz), codeError(0) {
+        data = new short[sz];
+        for (int i = 0; i < sz; i++) data[i] = val;
+        count++;
+    }
+
+    VectorShort(const VectorShort& other) : size(other.size), codeError(other.codeError) {
+        data = new short[size];
+        for (int i = 0; i < size; i++) data[i] = other.data[i];
+        count++;
+    }
+
+    ~VectorShort() {
+        delete[] data;
+        count--;
+    }
+
+    int getSize() const { return size; }
+    int getCodeError() const { return codeError; }
+    static int getCount() { return count; }
+
+    VectorShort& operator=(const VectorShort& b) {
+        if (this != &b) {
+            delete[] data;
+            size = b.size;
+            data = new short[size];
+            for (int i = 0; i < size; i++) data[i] = b.data[i];
+            codeError = b.codeError;
+        }
+        return *this;
+    }
+
+    // Префіксний ++
+    VectorShort& operator++() {
+        for (int i = 0; i < size; i++) data[i]++;
+        return *this;
+    }
+
+    // Постфіксний ++
+    VectorShort operator++(int) {
+        VectorShort temp(*this);
+        for (int i = 0; i < size; i++) data[i]++;
+        return temp;
+    }
+
+    // Префіксний --
+    VectorShort& operator--() {
+        for (int i = 0; i < size; i++) data[i]--;
+        return *this;
+    }
+
+    // Постфіксний --
+    VectorShort operator--(int) {
+        VectorShort temp(*this);
+        for (int i = 0; i < size; i++) data[i]--;
+        return temp;
+    }
+
+    bool operator!() const { return size != 0; }
+
+    VectorShort operator~() const {
+        VectorShort temp(size);
+        for (int i = 0; i < size; i++) temp.data[i] = ~data[i];
+        return temp;
+    }
+
+    VectorShort operator-() const {
+        VectorShort temp(size);
+        for (int i = 0; i < size; i++) temp.data[i] = -data[i];
+        return temp;
+    }
+
+    VectorShort& operator+=(const VectorShort& b) {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) data[i] += b.data[i];
+        return *this;
+    }
+
+    VectorShort& operator-=(const VectorShort& b) {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) data[i] -= b.data[i];
+        return *this;
+    }
+
+    VectorShort& operator*=(short b) {
+        for (int i = 0; i < size; i++) data[i] *= b;
+        return *this;
+    }
+
+    VectorShort& operator/=(short b) {
+        if (b == 0) { codeError = -1; cout << "Error: division by zero" << endl; return *this; }
+        for (int i = 0; i < size; i++) data[i] /= b;
+        return *this;
+    }
+
+    VectorShort& operator%=(short b) {
+        if (b == 0) { codeError = -1; cout << "Error: division by zero" << endl; return *this; }
+        for (int i = 0; i < size; i++) data[i] %= b;
+        return *this;
+    }
+
+    VectorShort& operator|=(const VectorShort& b) {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) data[i] |= b.data[i];
+        return *this;
+    }
+
+    VectorShort& operator^=(const VectorShort& b) {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) data[i] ^= b.data[i];
+        return *this;
+    }
+
+    VectorShort& operator&=(const VectorShort& b) {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) data[i] &= b.data[i];
+        return *this;
+    }
+
+    VectorShort operator+(const VectorShort& b) const {
+        VectorShort temp(min(size, b.size));
+        for (int i = 0; i < temp.size; i++) temp.data[i] = data[i] + b.data[i];
+        return temp;
+    }
+
+    VectorShort operator-(const VectorShort& b) const {
+        VectorShort temp(min(size, b.size));
+        for (int i = 0; i < temp.size; i++) temp.data[i] = data[i] - b.data[i];
+        return temp;
+    }
+
+    VectorShort operator*(short b) const {
+        VectorShort temp(size);
+        for (int i = 0; i < size; i++) temp.data[i] = data[i] * b;
+        return temp;
+    }
+
+    VectorShort operator/(short b) const {
+        VectorShort temp(size);
+        if (b == 0) { temp.codeError = -1; cout << "Error: division by zero" << endl; return temp; }
+        for (int i = 0; i < size; i++) temp.data[i] = data[i] / b;
+        return temp;
+    }
+
+    VectorShort operator%(short b) const {
+        VectorShort temp(size);
+        if (b == 0) { temp.codeError = -1; cout << "Error: division by zero" << endl; return temp; }
+        for (int i = 0; i < size; i++) temp.data[i] = data[i] % b;
+        return temp;
+    }
+
+    VectorShort operator|(const VectorShort& b) const {
+        VectorShort temp(min(size, b.size));
+        for (int i = 0; i < temp.size; i++) temp.data[i] = data[i] | b.data[i];
+        return temp;
+    }
+
+    VectorShort operator^(const VectorShort& b) const {
+        VectorShort temp(min(size, b.size));
+        for (int i = 0; i < temp.size; i++) temp.data[i] = data[i] ^ b.data[i];
+        return temp;
+    }
+
+    VectorShort operator&(const VectorShort& b) const {
+        VectorShort temp(min(size, b.size));
+        for (int i = 0; i < temp.size; i++) temp.data[i] = data[i] & b.data[i];
+        return temp;
+    }
+
+    bool operator==(const VectorShort& b) const {
+        if (size != b.size) return false;
+        for (int i = 0; i < size; i++) if (data[i] != b.data[i]) return false;
+        return true;
+    }
+
+    bool operator!=(const VectorShort& b) const { return !(*this == b); }
+
+    bool operator>(const VectorShort& b) const {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) if (data[i] <= b.data[i]) return false;
+        return true;
+    }
+
+    bool operator>=(const VectorShort& b) const {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) if (data[i] < b.data[i]) return false;
+        return true;
+    }
+
+    bool operator<(const VectorShort& b) const {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) if (data[i] >= b.data[i]) return false;
+        return true;
+    }
+
+    bool operator<=(const VectorShort& b) const {
+        int n = min(size, b.size);
+        for (int i = 0; i < n; i++) if (data[i] > b.data[i]) return false;
+        return true;
+    }
+
+    short& operator[](int i) {
+        if (i < 0 || i >= size) {
+            cout << "Error: index out of range, returning last element" << endl;
+            codeError = -2;
+            return data[size - 1];
+        }
+        return data[i];
+    }
+
+    void operator()() const {
+        cout << "VectorShort[" << size << "]: ";
+        for (int i = 0; i < size; i++) cout << data[i] << " ";
+        cout << endl;
+    }
+
+    void* operator new(size_t sz) {
+        void* ptr = malloc(sz);
+        if (!ptr) cout << "Error: memory allocation failed" << endl;
+        return ptr;
+    }
+
+    void operator delete(void* ptr) { free(ptr); }
+
+    friend istream& operator>>(istream& in, VectorShort& v) {
+        for (int i = 0; i < v.size; i++) in >> v.data[i];
+        return in;
+    }
+
+    friend ostream& operator<<(ostream& out, const VectorShort& v) {
+        out << "[";
+        for (int i = 0; i < v.size; i++) {
+            out << v.data[i];
+            if (i < v.size - 1) out << ", ";
+        }
+        out << "]";
+        return out;
+    }
+};
+
+int VectorShort::count = 0;
+
+//===========================
+//  Клас MatrixShort
+//===========================
+class MatrixShort {
+protected:
+    VectorShort* ShortArray;
+    int n, size;
+    int codeError;
+    static int num_matrix;
+
+public:
+    MatrixShort() : ShortArray(nullptr), n(0), size(0), codeError(0) {
+        num_matrix++;
+    }
+
+    // Одинична матриця n x n
+    MatrixShort(int sz) : n(sz), size(sz), codeError(0) {
+        ShortArray = new VectorShort[n];
+        for (int i = 0; i < n; i++) {
+            ShortArray[i] = VectorShort(size, 0);
+            ShortArray[i][i] = 1;
+        }
+        num_matrix++;
+    }
+
+    // Матриця n x sz
+    MatrixShort(int rows, int cols) : n(rows), size(cols), codeError(0) {
+        ShortArray = new VectorShort[n];
+        for (int i = 0; i < n; i++) ShortArray[i] = VectorShort(size, 0);
+        num_matrix++;
+    }
+
+    // Матриця n x sz з початковим значенням
+    MatrixShort(int rows, int cols, short val) : n(rows), size(cols), codeError(0) {
+        ShortArray = new VectorShort[n];
+        for (int i = 0; i < n; i++) ShortArray[i] = VectorShort(size, val);
+        num_matrix++;
+    }
+
+    // Конструктор копіювання
+    MatrixShort(const MatrixShort& other) : n(other.n), size(other.size), codeError(other.codeError) {
+        ShortArray = new VectorShort[n];
+        for (int i = 0; i < n; i++) ShortArray[i] = other.ShortArray[i];
+        num_matrix++;
+    }
+
+    ~MatrixShort() {
+        delete[] ShortArray;
+        num_matrix--;
+    }
+
+    int getN() const { return n; }
+    int getSize() const { return size; }
+    int getCodeError() const { return codeError; }
+    static int getNumMatrix() { return num_matrix; }
+
+    MatrixShort& operator=(const MatrixShort& b) {
+        if (this != &b) {
+            delete[] ShortArray;
+            n = b.n; size = b.size; codeError = b.codeError;
+            ShortArray = new VectorShort[n];
+            for (int i = 0; i < n; i++) ShortArray[i] = b.ShortArray[i];
+        }
+        return *this;
+    }
+
+    MatrixShort& operator++() {
+        for (int i = 0; i < n; i++) ++ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort operator++(int) {
+        MatrixShort temp(*this);
+        for (int i = 0; i < n; i++) ShortArray[i]++;
+        return temp;
+    }
+
+    MatrixShort& operator--() {
+        for (int i = 0; i < n; i++) --ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort operator--(int) {
+        MatrixShort temp(*this);
+        for (int i = 0; i < n; i++) ShortArray[i]--;
+        return temp;
+    }
+
+    bool operator!() const { return n != 0 && size != 0; }
+
+    MatrixShort operator~() const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ~ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator-() const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = -ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator+(const MatrixShort& b) const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] + b.ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator+(short b) const {
+        MatrixShort temp(n, size);
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] + vb;
+        return temp;
+    }
+
+    MatrixShort operator-(const MatrixShort& b) const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] - b.ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator-(short b) const {
+        MatrixShort temp(n, size);
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] - vb;
+        return temp;
+    }
+
+    MatrixShort operator*(const MatrixShort& b) const {
+        MatrixShort temp(n, b.size);
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < b.size; j++) {
+                short s = 0;
+                for (int k = 0; k < size; k++) s += ShortArray[i][k] * b.ShortArray[k][j];
+                temp.ShortArray[i][j] = s;
+            }
+        return temp;
+    }
+
+    MatrixShort operator*(short b) const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] * b;
+        return temp;
+    }
+
+    MatrixShort operator/(short b) const {
+        MatrixShort temp(n, size);
+        if (b == 0) { temp.codeError = -1; cout << "Error: division by zero" << endl; return temp; }
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] / b;
+        return temp;
+    }
+
+    MatrixShort operator%(short b) const {
+        MatrixShort temp(n, size);
+        if (b == 0) { temp.codeError = -1; cout << "Error: division by zero" << endl; return temp; }
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] % b;
+        return temp;
+    }
+
+    MatrixShort& operator+=(const MatrixShort& b) {
+        for (int i = 0; i < n; i++) ShortArray[i] += b.ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort& operator+=(short b) {
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) ShortArray[i] += vb;
+        return *this;
+    }
+
+    MatrixShort& operator-=(const MatrixShort& b) {
+        for (int i = 0; i < n; i++) ShortArray[i] -= b.ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort& operator-=(short b) {
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) ShortArray[i] -= vb;
+        return *this;
+    }
+
+    MatrixShort& operator*=(short b) {
+        for (int i = 0; i < n; i++) ShortArray[i] *= b;
+        return *this;
+    }
+
+    MatrixShort& operator/=(short b) {
+        if (b == 0) { codeError = -1; cout << "Error: division by zero" << endl; return *this; }
+        for (int i = 0; i < n; i++) ShortArray[i] /= b;
+        return *this;
+    }
+
+    MatrixShort& operator%=(short b) {
+        if (b == 0) { codeError = -1; cout << "Error: division by zero" << endl; return *this; }
+        for (int i = 0; i < n; i++) ShortArray[i] %= b;
+        return *this;
+    }
+
+    MatrixShort operator|(const MatrixShort& b) const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] | b.ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator|(short b) const {
+        MatrixShort temp(n, size);
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] | vb;
+        return temp;
+    }
+
+    MatrixShort operator^(const MatrixShort& b) const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] ^ b.ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator^(short b) const {
+        MatrixShort temp(n, size);
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] ^ vb;
+        return temp;
+    }
+
+    MatrixShort operator&(const MatrixShort& b) const {
+        MatrixShort temp(n, size);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] & b.ShortArray[i];
+        return temp;
+    }
+
+    MatrixShort operator&(short b) const {
+        MatrixShort temp(n, size);
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) temp.ShortArray[i] = ShortArray[i] & vb;
+        return temp;
+    }
+
+    MatrixShort& operator|=(const MatrixShort& b) {
+        for (int i = 0; i < n; i++) ShortArray[i] |= b.ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort& operator|=(short b) {
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) ShortArray[i] |= vb;
+        return *this;
+    }
+
+    MatrixShort& operator^=(const MatrixShort& b) {
+        for (int i = 0; i < n; i++) ShortArray[i] ^= b.ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort& operator^=(short b) {
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) ShortArray[i] ^= vb;
+        return *this;
+    }
+
+    MatrixShort& operator&=(const MatrixShort& b) {
+        for (int i = 0; i < n; i++) ShortArray[i] &= b.ShortArray[i];
+        return *this;
+    }
+
+    MatrixShort& operator&=(short b) {
+        VectorShort vb(size, b);
+        for (int i = 0; i < n; i++) ShortArray[i] &= vb;
+        return *this;
+    }
+
+    bool operator==(const MatrixShort& b) const {
+        if (n != b.n || size != b.size) return false;
+        for (int i = 0; i < n; i++) if (ShortArray[i] != b.ShortArray[i]) return false;
+        return true;
+    }
+
+    bool operator!=(const MatrixShort& b) const { return !(*this == b); }
+
+    bool operator>(const MatrixShort& b) const {
+        for (int i = 0; i < n; i++) if (!(ShortArray[i] > b.ShortArray[i])) return false;
+        return true;
+    }
+
+    bool operator>=(const MatrixShort& b) const {
+        for (int i = 0; i < n; i++) if (!(ShortArray[i] >= b.ShortArray[i])) return false;
+        return true;
+    }
+
+    bool operator<(const MatrixShort& b) const {
+        for (int i = 0; i < n; i++) if (!(ShortArray[i] < b.ShortArray[i])) return false;
+        return true;
+    }
+
+    bool operator<=(const MatrixShort& b) const {
+        for (int i = 0; i < n; i++) if (!(ShortArray[i] <= b.ShortArray[i])) return false;
+        return true;
+    }
+
+    VectorShort& operator[](int i) {
+        if (i < 0 || i >= n) {
+            cout << "Error: row index out of range, returning last row" << endl;
+            codeError = -2;
+            return ShortArray[n - 1];
+        }
+        return ShortArray[i];
+    }
+
+    void operator()() const {
+        cout << "MatrixShort " << n << "x" << size << ":" << endl;
+        for (int i = 0; i < n; i++) { cout << "  "; ShortArray[i](); }
+    }
+
+    void* operator new(size_t sz) {
+        void* ptr = malloc(sz);
+        if (!ptr) cout << "Error: memory allocation failed" << endl;
+        return ptr;
+    }
+
+    void operator delete(void* ptr) { free(ptr); }
+
+    friend istream& operator>>(istream& in, MatrixShort& m) {
+        for (int i = 0; i < m.n; i++) in >> m.ShortArray[i];
+        return in;
+    }
+
+    friend ostream& operator<<(ostream& out, const MatrixShort& m) {
+        for (int i = 0; i < m.n; i++) {
+            out << "  " << m.ShortArray[i] << endl;
+        }
+        return out;
+    }
+};
+
+int MatrixShort::num_matrix = 0;
+
+//===========================
+//==========MENU=============
+//===========================
+void runTask1() {
+    cout << "\n--- TASK 1.6: Vector3F ---" << endl;
+
+    Vector3F a, b;
+    cout << "Enter vector a (x y z): ";
+    cin >> a;
+    cout << "Enter vector b (x y z): ";
+    cin >> b;
+    cout << "a = " << a << endl;
+    cout << "b = " << b << endl;
+
+    float scalar;
+    cout << "Enter scalar value: ";
+    cin >> scalar;
+
+    Vector3F c = (a + b) * scalar - b / scalar + a;
+    cout << "c = (a+b)*scalar - b/scalar + a = " << c << endl;
+
+    Vector3F d = -a + b * scalar - c / 2.0f + b;
+    cout << "d = -a + b*scalar - c/2 + b = " << d << endl;
+
+    cout << "\n--- Unary operators on a ---" << endl;
+    Vector3F e = a;
+    cout << "e = " << e << endl;
+    ++e;
+    cout << "++e = " << e << endl;
+    e--;
+    cout << "e-- = " << e << endl;
+    cout << "!e (all non-zero): " << (!e ? "true" : "false") << endl;
+    cout << "~e (perpendicular): " << ~e << endl;
+    cout << "-e: " << -e << endl;
+
+    cout << "\n--- Comparison ---" << endl;
+    cout << "a > b: " << (a > b ? "true" : "false") << endl;
+    cout << "a == b: " << (a == b ? "true" : "false") << endl;
+    cout << "a < b: " << (a < b ? "true" : "false") << endl;
+
+    cout << "\n--- Index ---" << endl;
+    cout << "a[0]=" << a[0] << " a[1]=" << a[1] << " a[2]=" << a[2] << endl;
+
+    cout << "\n--- Length (operator()) ---" << endl;
+    cout << "length of a: " << a() << endl;
+    cout << "length of b: " << b() << endl;
+
+    cout << "\nObjects count: " << Vector3F::getCount() << endl;
+}
+
+void runTask2() {
+    cout << "\n--- TASK 2.5: Email-PIB ---" << endl;
+
+    int n;
+    cout << "How many records to enter? ";
+    cin >> n;
+    EmailPIB db(n + 5);
+
+    for (int i = 0; i < n; i++) {
+        cin >> db;
+    }
+
+    cout << "\n--- All records ---" << endl;
+    cout << db;
+
+    cout << "\n--- Search by email ---" << endl;
+    char searchEmail[100];
+    cout << "Enter email to search: ";
+    cin >> searchEmail;
+    char* pib = db[searchEmail];
+    if (pib) cout << "Found PIB: " << pib << endl;
+
+    cout << "\n--- Search by PIB ---" << endl;
+    char searchPib[200];
+    cout << "Enter PIB to search: ";
+    cin.ignore();
+    cin.getline(searchPib, 200);
+    char* email = db(searchPib);
+    if (email) cout << "Found email: " << email << endl;
+}
+
+void runTask3() {
+    cout << "\n--- TASK 3.6: MatrixShort ---" << endl;
+
+    int rows, cols;
+    cout << "Enter matrix size (rows cols): ";
+    cin >> rows >> cols;
+
+    MatrixShort m1(rows, cols);
+    MatrixShort m2(rows, cols);
+
+    cout << "Enter matrix m1 (" << rows << "x" << cols << "):" << endl;
+    cin >> m1;
+    cout << "Enter matrix m2 (" << rows << "x" << cols << "):" << endl;
+    cin >> m2;
+
+    cout << "m1:" << endl << m1;
+    cout << "m2:" << endl << m2;
+
+    MatrixShort m3 = m1 + m2;
+    cout << "m1 + m2:" << endl << m3;
+
+    MatrixShort m4 = m1 * m2;
+    cout << "m1 * m2:" << endl << m4;
+
+    short sc;
+    cout << "Enter scalar (short): ";
+    cin >> sc;
+
+    MatrixShort m5 = m1 - sc;
+    cout << "m1 - scalar:" << endl << m5;
+
+    m3 += sc;
+    cout << "m3 += scalar:" << endl << m3;
+
+    ++m1;
+    cout << "++m1:" << endl << m1;
+
+    cout << "m1 == m2: " << (m1 == m2 ? "true" : "false") << endl;
+    cout << "m1 > m2: " << (m1 > m2 ? "true" : "false") << endl;
+
+    MatrixShort m6 = m1 | m2;
+    cout << "m1 | m2:" << endl << m6;
+
+    MatrixShort m7 = m1 ^ m2;
+    cout << "m1 ^ m2:" << endl << m7;
+
+    cout << "MatrixShort objects count: " << MatrixShort::getNumMatrix() << endl;
+}
+
+int main() {
+    int choice;
+    do {
+        cout << "\n=== MENU ===" << endl;
+        cout << "1 - Vector3F (Task 1.6)" << endl;
+        cout << "2 - Email-PIB (Task 2.5)" << endl;
+        cout << "3 - MatrixShort (Task 3.6)" << endl;
+        cout << "0 - Exit" << endl;
+        cout << "Choose: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: runTask1(); break;
+        case 2: runTask2(); break;
+        case 3: runTask3(); break;
+        case 0: cout << "Exit..." << endl; break;
+        default: cout << "Wrong choice!" << endl;
+        }
+    } while (choice != 0);
+
+    return 0;
+}
